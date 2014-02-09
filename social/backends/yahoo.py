@@ -23,7 +23,9 @@ class YahooOAuth(BaseOAuth1):
     EXTRA_DATA = [
         ('guid', 'id'),
         ('access_token', 'access_token'),
-        ('expires', 'expires')
+        ('expires', 'expires'),
+        ('refresh_token', 'refresh_token', True), # added for testing
+        ('expires_in', 'expires'), #added for testing
     ]
 
     def get_user_details(self, response):
