@@ -20,6 +20,8 @@ class LiveOAuth2(BaseOAuth2):
         ('email', 'email'),
         ('first_name', 'first_name'),
         ('last_name', 'last_name'),
+        ('refresh_token', 'refresh_token', True), # added for testing
+        ('expires_in', 'expires'), #added for testing
     ]
 
     def get_user_details(self, response):
