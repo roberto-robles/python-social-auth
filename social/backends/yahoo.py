@@ -66,13 +66,11 @@ class YahooOAuth(BaseOAuth1):
 
     def refresh_token_params(self, token, *args, **kwargs):
         client_id, client_secret = self.get_key_and_secret()
-        signed = self.oauth_auth(token)
         return {
-
             'oauth_nonce': str(uuid.uuid4()),
             'oauth_consumer_key' : client_id,
             'oauth_signature_method' : 'plaintext',
-            'oauth_signature' : '%s&%s' % (client_secret, token['oauth_token_secret']),# + '%26',
+            'oauth_signature' : '%s&%s' % (client_secret, token['oauth_token_secret']),
             'oauth_version' : '1.0',
             'oauth_token' : token['oauth_token'],
             'oauth_timestamp': time.time() + 600,
