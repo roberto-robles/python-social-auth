@@ -4,6 +4,9 @@ Yahoo OpenId and OAuth1 backends, docs at:
 """
 from social.backends.open_id import OpenIdAuth
 from social.backends.oauth import BaseOAuth1
+from social.utils import url_add_parameters, parse_qs
+import json
+import time
 import uuid
 
 class YahooOpenId(OpenIdAuth):
@@ -20,6 +23,8 @@ class YahooOAuth(BaseOAuth1):
     REQUEST_TOKEN_URL = \
         'https://api.login.yahoo.com/oauth/v2/get_request_token'
     ACCESS_TOKEN_URL = 'https://api.login.yahoo.com/oauth/v2/get_token'
+    REFRESH_TOKEN_URL = ACCESS_TOKEN_URL
+    REFRESH_TOKEN_METHOD = 'GET'
     EXTRA_DATA = [
         ('guid', 'id'),
         ('access_token', 'access_token'),
@@ -61,20 +66,17 @@ class YahooOAuth(BaseOAuth1):
 
     def refresh_token_params(self, token, *args, **kwargs):
         client_id, client_secret = self.get_key_and_secret()
-        assert False
+        signed = self.oauth_auth(token)
         return {
-            'refresh_token': token,
-            'grant_type': 'refresh_token',
-            'client_id': client_id,
-            'client_secret': client_secret,
+
             'oauth_nonce': str(uuid.uuid4()),
-            'oauth_consumer_key' : 123456891011121314151617181920
-            'oauth_signature_method' : 'plaintext'
-            'oauth_signature' : 55d4cf6bf417023ce5dcc3b77132fb021cd13b21abcdef%26
-            'oauth_version' : '1.0'
-            'oauth_token' : token
-            'oauth_timestamp': '',
-            'oauth_session_handle': ''
+            'oauth_consumer_key' : client_id,
+            'oauth_signature_method' : 'plaintext',
+            'oauth_signature' : '%s&%s' % (client_secret, token['oauth_token_secret']),# + '%26',
+            'oauth_version' : '1.0',
+            'oauth_token' : token['oauth_token'],
+            'oauth_timestamp': time.time() + 600,
+            'oauth_session_handle': token['oauth_session_handle']
         }
 
     def process_refresh_token_response(self, response, *args, **kwargs):
@@ -89,4 +91,7 @@ class YahooOAuth(BaseOAuth1):
                         'method': method,
                         key: params}
         request = self.request(url, **request_args)
-        return self.process_refresh_token_response(request, *args, **kwargs)
+        return parse_qs(request.content)
+
+    def auth_headers(self):
+        return {'Content-Type': 'application/json'}
