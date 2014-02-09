@@ -4,7 +4,7 @@ Yahoo OpenId and OAuth1 backends, docs at:
 """
 from social.backends.open_id import OpenIdAuth
 from social.backends.oauth import BaseOAuth1
-
+import uuid
 
 class YahooOpenId(OpenIdAuth):
     """Yahoo OpenID authentication backend"""
@@ -58,3 +58,35 @@ class YahooOAuth(BaseOAuth1):
             'http://social.yahooapis.com/v1/me/guid?format=json',
             auth=self.oauth_auth(access_token)
         )['guid']['value']
+
+    def refresh_token_params(self, token, *args, **kwargs):
+        client_id, client_secret = self.get_key_and_secret()
+        assert False
+        return {
+            'refresh_token': token,
+            'grant_type': 'refresh_token',
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'oauth_nonce': str(uuid.uuid4()),
+            'oauth_consumer_key' : 123456891011121314151617181920
+            'oauth_signature_method' : 'plaintext'
+            'oauth_signature' : 55d4cf6bf417023ce5dcc3b77132fb021cd13b21abcdef%26
+            'oauth_version' : '1.0'
+            'oauth_token' : token
+            'oauth_timestamp': '',
+            'oauth_session_handle': ''
+        }
+
+    def process_refresh_token_response(self, response, *args, **kwargs):
+        return response.json()
+
+    def refresh_token(self, token, *args, **kwargs):
+        params = self.refresh_token_params(token, *args, **kwargs)
+        url = self.REFRESH_TOKEN_URL or self.ACCESS_TOKEN_URL
+        method = self.REFRESH_TOKEN_METHOD
+        key = 'params' if method == 'GET' else 'data'
+        request_args = {'headers': self.auth_headers(),
+                        'method': method,
+                        key: params}
+        request = self.request(url, **request_args)
+        return self.process_refresh_token_response(request, *args, **kwargs)
