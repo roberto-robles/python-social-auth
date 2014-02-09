@@ -80,7 +80,7 @@ class YahooOAuth(BaseOAuth1):
         }
 
     def process_refresh_token_response(self, response, *args, **kwargs):
-        return response.json()
+        return  {'access_token': parse_qs(response)}
 
     def refresh_token(self, token, *args, **kwargs):
         params = self.refresh_token_params(token, *args, **kwargs)
@@ -91,7 +91,7 @@ class YahooOAuth(BaseOAuth1):
                         'method': method,
                         key: params}
         request = self.request(url, **request_args)
-        return parse_qs(request.content)
+        return process_refresh_token_response(request.content)
 
     def auth_headers(self):
         return {'Content-Type': 'application/json'}
