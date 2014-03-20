@@ -48,18 +48,15 @@ def sanitize_redirect(host, redirect_to):
     and returns it, else returns None, similar as how's it done
     on django.contrib.auth.views.
     """
-    # Quick sanity check.
-    if not redirect_to or \
-       not isinstance(redirect_to, six.string_types) or \
-       getattr(redirect_to, 'decode', None) and \
-       not isinstance(redirect_to.decode(), six.string_types):
-        return None
-
-    # Heavier security check, don't allow redirection to a different host.
-    netloc = urlparse(redirect_to)[1]
-    if netloc and netloc != host:
-        return None
-    return redirect_to
+    if redirect_to:
+        try:
+            # Don't redirect to a different host
+            netloc = urlparse(redirect_to)[1] or host
+        except (TypeError, AttributeError):
+            pass
+        else:
+            if netloc == host:
+                return redirect_to
 
 
 def user_is_authenticated(user):
@@ -124,13 +121,14 @@ def drop_lists(value):
     return out
 
 
-def partial_pipeline_data(strategy, user, *args, **kwargs):
+def partial_pipeline_data(strategy, user=None, *args, **kwargs):
     partial = strategy.session_get('partial_pipeline', None)
     if partial:
         idx, backend, xargs, xkwargs = strategy.partial_from_session(partial)
         if backend == strategy.backend.name:
             kwargs.setdefault('pipeline_index', idx)
-            kwargs.setdefault('user', user)
+            if user:  # don't update user if it's None
+                kwargs.setdefault('user', user)
             kwargs.setdefault('request', strategy.request)
             xkwargs.update(kwargs)
             return xargs, xkwargs

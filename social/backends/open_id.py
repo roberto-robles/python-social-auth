@@ -108,7 +108,12 @@ class OpenIdAuth(BaseAuth):
         """
         sreg_names = self.setting('SREG_EXTRA_DATA')
         ax_names = self.setting('AX_EXTRA_DATA')
-        return self.values_from_response(response, sreg_names, ax_names)
+        values = self.values_from_response(response, sreg_names, ax_names)
+        from_details = super(OpenIdAuth, self).extra_data(
+            user, uid, {}, details
+        )
+        values.update(from_details)
+        return values
 
     def auth_url(self):
         """Return auth URL returned by service"""
@@ -202,11 +207,11 @@ class OpenIdAuth(BaseAuth):
     def consumer(self):
         """Create an OpenID Consumer object for the given Django request."""
         if not hasattr(self, '_consumer'):
-            self._consumer = Consumer(
-                self.strategy.openid_session_dict(SESSION_NAME),
-                self.strategy.openid_store()
-            )
+            self._consumer = self.create_consumer(self.strategy.openid_store())
         return self._consumer
+
+    def create_consumer(self, store=None):
+        return Consumer(self.strategy.openid_session_dict(SESSION_NAME), store)
 
     def uses_redirect(self):
         """Return true if openid request will be handled with redirect or

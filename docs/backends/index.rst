@@ -54,6 +54,7 @@ Social backends
    belgium_eid
    bitbucket
    box
+   clef
    coinbase
    dailymotion
    disqus
@@ -100,6 +101,7 @@ Social backends
    tumblr
    twilio
    twitter
+   vimeo
    vk
    weibo
    xing
