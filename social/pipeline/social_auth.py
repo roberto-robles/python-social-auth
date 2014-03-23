@@ -22,8 +22,8 @@ def social_user(strategy, uid, user=None, *args, **kwargs):
         if user and social.user != user:
             msg = 'This {0} account is already in use.'.format(provider)
             raise AuthAlreadyAssociated(strategy.backend, msg)
-        elif not user:
-            user = social.user
+        #elif not user:
+        user = social.user
     return {'social': social,
             'user': user,
             'is_new': user is None,
