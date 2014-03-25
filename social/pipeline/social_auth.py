@@ -1,3 +1,6 @@
+from common.utils import initLogging
+logger = initLogging(__name__)
+
 from social.exceptions import AuthAlreadyAssociated, AuthException, \
                               AuthForbidden
 
@@ -20,10 +23,10 @@ def social_user(strategy, uid, user=None, *args, **kwargs):
     social = strategy.storage.user.get_social_auth(provider, uid)
     if social:
         if user and social.user != user:
-            msg = 'This {0} account is already in use.'.format(provider)
-            raise AuthAlreadyAssociated(strategy.backend, msg)
-        #elif not user:
+            # msg = 'This {0} account is already in use.'.format(provider)
+            # raise AuthAlreadyAssociated(strategy.backend, msg)
         user = social.user
+        logger.debug('Asigned user to dict %s' % user)
     return {'social': social,
             'user': user,
             'is_new': user is None,
